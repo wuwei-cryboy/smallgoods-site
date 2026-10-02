@@ -1,0 +1,10 @@
+smallgoods-site/
+├── app/
+│   ├── page.js        # 首页
+│   ├── products/page.js # 产品列表页
+│   ├── about/page.js    # 关于我们
+│   ├── faq/page.js      # 外贸常见问题
+│   ├── contact/page.js  # 询盘页面
+├── public/
+│   └── images/         # 放你的小商品图片
+└── layout.js           # 全局导航+页脚
