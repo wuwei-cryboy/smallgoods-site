@@ -2,40 +2,51 @@
 import { useState, useRef } from 'react';
 import Link from 'next/link';
 const brandList = [
-  { name: "劳力士", logo: "/img/logo-rolex.jpg" },
-  { name: "浪琴", logo: "/img/logo-longines.jpg" },
-  { name: "欧米茄", logo: "/img/logo-omega.jpg" },
-  { name: "卡西欧", logo: "/img/logo-casio.jpg" },
-  { name: "天梭", logo: "/img/logo-tissot.jpg" }
+  { name: "Rolex", logo: "/img/logo-rolex.jpg" },
+  { name: "Longines", logo: "/img/logo-longines.jpg" },
+  { name: "Omega", logo: "/img/logo-omega.jpg" },
+  { name: "Casio", logo: "/img/logo-casio.jpg" },
+  { name: "Tissot", logo: "/img/logo-tissot.jpg" }
 ];
-// 生成每个品牌50条腕表商品数据
+
+// 腕表分类列表
+const categoryList = [
+  "Asia Version Watch",
+  "Generic Automatic Watch",
+  "Mechanical Watch",
+  "Budget Automatic Wristwatch"
+];
+
+// 生成每个品牌50条腕表商品数据，循环分配分类
 const generateBrandProducts = (brandName) => {
   const list = [];
   for(let i=1;i<=50;i++){
+    const catIndex = (i-1) % categoryList.length;
     list.push({
       id: `${brandName}-${i}`,
-      name: `${brandName}腕表${i}`,
+      name: `${brandName} Watch ${i}`,
+      category: categoryList[catIndex],
       img: `/img/${brandName}${i}.jpg`,
       params:{
-        "表盘":"42mm",
-        "材质":"精钢",
-        "机芯":"自动机械",
-        "防水":"100米",
-        "产地":"Switzerland"
+        "Dial":"42mm",
+        "Material":"Solid Steel",
+        "Movement":"Automatic Mechanical",
+        "Water Resistance":"100m",
+        "Origin":"Switzerland"
       }
     })
   }
   return list;
 }
 const productData = {
-  "劳力士": generateBrandProducts("劳力士"),
-  "浪琴": generateBrandProducts("浪琴"),
-  "欧米茄": generateBrandProducts("欧米茄"),
-  "卡西欧": generateBrandProducts("卡西欧"),
-  "天梭": generateBrandProducts("天梭"),
+  "Rolex": generateBrandProducts("Rolex"),
+  "Longines": generateBrandProducts("Longines"),
+  "Omega": generateBrandProducts("Omega"),
+  "Casio": generateBrandProducts("Casio"),
+  "Tissot": generateBrandProducts("Tissot"),
 };
 export default function WatchPage() {
-  const [activeBrand, setActiveBrand] = useState("劳力士");
+  const [activeCategory, setActiveCategory] = useState(categoryList[0]);
   const [selectedItem, setSelectedItem] = useState(null);
   const pageScrollRef = useRef(0);
   const openDetail = (item) => {
@@ -48,13 +59,14 @@ export default function WatchPage() {
       window.scrollTo(0, pageScrollRef.current);
     },0);
   };
-  const currentProducts = productData[activeBrand];
-  // 获取当前选中品牌的logo
-  const currentBrandInfo = brandList.find(b => b.name === activeBrand);
+
+  // 合并全部商品，按选中分类筛选
+  const allProducts = Object.values(productData).flat();
+  const currentProducts = allProducts.filter(item => item.category === activeCategory);
 
   return (
     <div style={{display:'flex', height:'100vh', overflow:'hidden'}}>
-      {/* 左侧品牌栏 */}
+      {/* 左侧分类栏，移除圆圈图片 */}
       <div style={{width:'200px',padding:'24px',borderRight:'1px solid #eee',flexShrink:0,overflowY:'auto'}}>
         {/* 返回分类页面按钮 */}
         <Link href="/categories" style={{
@@ -75,27 +87,24 @@ export default function WatchPage() {
           e.target.style.backgroundColor="#f27c38";
         }}
         >
-          ← 返回商品分类
+          ← Back to Categories
         </Link>
-        <h3 style={{marginTop:0}}>品牌</h3>
-        {brandList.map(brand=>(
+        <h3 style={{marginTop:0}}>Category</h3>
+        {categoryList.map(category=>(
           <div
-            key={brand.name}
-            onClick={()=>setActiveBrand(brand.name)}
+            key={category}
+            onClick={()=>setActiveCategory(category)}
             style={{
-              display:"flex",
-              alignItems:"center",
-              gap:"10px",
               padding:'12px',
               margin:'8px 0',
               cursor:'pointer',
-              backgroundColor:activeBrand===brand.name ? '#0066ff':'#f3f4f6',
-              color:activeBrand===brand.name ? '#fff':'#222',
+              backgroundColor:activeCategory===category ? '#0066ff':'#f3f4f6',
+              color:activeCategory===category ? '#fff':'#222',
               borderRadius:'8px',
               transition:"all 0.25s ease"
             }}
             onMouseEnter={(e)=>{
-              if(activeBrand !== brand.name){
+              if(activeCategory !== category){
                 e.currentTarget.style.transform = "translateX(4px)";
                 e.currentTarget.style.boxShadow = "0 3px 8px rgba(0,0,0,0.1)";
               }
@@ -105,42 +114,13 @@ export default function WatchPage() {
               e.currentTarget.style.boxShadow = "none";
             }}
           >
-            {/* 品牌Logo占位图 */}
-            <div style={{
-              width:"32px",
-              height:"32px",
-              borderRadius:"50%",
-              overflow:"hidden",
-              backgroundColor:"#fff"
-            }}>
-              <img
-                src={brand.logo}
-                alt={brand.name}
-                style={{width:"100%",height:"100%",objectFit:"cover"}}
-                onError={(e)=>{
-                  e.currentTarget.style.display = "none";
-                }}
-              />
-            </div>
-            <span>{brand.name}</span>
+            {category}
           </div>
         ))}
       </div>
       {/* 右侧商品区域 */}
       <div style={{flex:1, padding:'24px', display:'flex', flexDirection:'column'}}>
-        <div style={{display:"flex",alignItems:"center",gap:"14px",margin:'0 0 20px 0'}}>
-          {currentBrandInfo && (
-            <div style={{width:"48px",height:"48px",borderRadius:"50%",overflow:"hidden",background:"#eee"}}>
-              <img
-                src={currentBrandInfo.logo}
-                alt={activeBrand}
-                style={{width:"100%",height:"100%",objectFit:"cover"}}
-                onError={(e)=>e.currentTarget.style.display="none"}
-              />
-            </div>
-          )}
-          <h2 style={{margin:0}}>{activeBrand}腕表（共{currentProducts.length}款）</h2>
-        </div>
+        <h2 style={{margin:'0 0 20px 0'}}>{activeCategory} ({currentProducts.length} Items)</h2>
         <div style={{flex:1, overflowY:'auto'}}>
           <div style={{
             display:'grid',
@@ -176,7 +156,7 @@ export default function WatchPage() {
                   alt={item.name}
                   style={{width:'100%',height:'230px',objectFit:'cover',display:'block'}}
                 />
-                <p style={{textAlign:'center',margin:'10px 0',fontSize:'14px',padding:'0 6px'}}>{item.name}</p >
+                {/* 卡片底部商品名称p标签已删除 */}
               </div>
             ))}
           </div>
@@ -213,7 +193,7 @@ export default function WatchPage() {
               style={{width:'100%',maxHeight:'400px',objectFit:'contain',borderRadius:"8px"}}
             />
             <div style={{marginTop:'24px'}}>
-              <h3 style={{margin:"0 0 12px 0"}}>产品参数</h3>
+              <h3 style={{margin:"0 0 12px 0"}}>Specifications</h3>
               {Object.entries(selectedItem.params).map(([key,val])=>(
                 <div key={key} style={{display:'flex',padding:'8px 0',borderBottom:'1px solid #eee'}}>
                   <div style={{width:'120px',fontWeight:'bold'}}>{key}</div>
@@ -236,7 +216,7 @@ export default function WatchPage() {
               onMouseEnter={(e)=>e.target.style.background="#0052d9"}
               onMouseLeave={(e)=>e.target.style.background="#0066ff"}
             >
-              返回产品列表
+              Back to List
             </button>
           </div>
         </div>

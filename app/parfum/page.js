@@ -2,42 +2,60 @@
 import { useState, useRef } from 'react';
 import Link from 'next/link';
 const brandList = [
-  { name: "迪奥", logo: "/img/logo-dior.jpg" },
-  { name: "香奈儿", logo: "/img/logo-chanel.jpg" },
-  { name: "伊斯兰·斯利", logo: "/img/logo-islamic.jpg" },
-  { name: "古驰", logo: "/img/logo-gucci.jpg" },
-  { name: "范思哲", logo: "/img/logo-versace.jpg" }
+  { name: "Dior", logo: "/img/logo-dior.jpg" },
+  { name: "Chanel", logo: "/img/logo-chanel.jpg" },
+  { name: "Islamic Slay", logo: "/img/logo-islamic.jpg" },
+  { name: "Gucci", logo: "/img/logo-gucci.jpg" },
+  { name: "Versace", logo: "/img/logo-versace.jpg" }
 ];
-// 生成每个品牌50条商品数据
+
+// 香型池，循环随机分配
+const scentList = [
+  "Woody Floral Fragrance",
+  "Citrus Aromatic",
+  "Oriental Spicy",
+  "Fresh Aquatic",
+  "Fruity Sweet",
+  "Soft Musk",
+  "Amber Vanilla",
+  "Green Herbal",
+  "Powdery Floral",
+  "Smoky Woody"
+];
+
+// 生成每个品牌50条商品数据，去掉商品编号，香型循环轮换
 const generateBrandProducts = (brandName) => {
   const list = [];
   for(let i=1;i<=50;i++){
     list.push({
       id: `${brandName}-${i}`,
-      name: `${brandName}香水${i}`,
+      name: `${brandName} Perfume`,
       img: `/img/${brandName}${i}.jpg`,
       params:{
-        "容量":"100ml",
-        "香型":"木质花香调",
-        "包装":"精品盒装",
+        "Volume":"100ml",
+        "Scent": scentList[(i-1) % scentList.length],
+        "Package":"Premium Box",
         "MOQ":"10pcs",
-        "产地":"China"
+        "Origin":"China"
       }
     })
   }
   return list;
 }
+
 const productData = {
-  "迪奥": generateBrandProducts("迪奥"),
-  "香奈儿": generateBrandProducts("香奈儿"),
-  "伊斯兰·斯利": generateBrandProducts("伊斯兰·斯利"),
-  "古驰": generateBrandProducts("古驰"),
-  "范思哲": generateBrandProducts("范思哲"),
+  "Dior": generateBrandProducts("Dior"),
+  "Chanel": generateBrandProducts("Chanel"),
+  "Islamic Slay": generateBrandProducts("Islamic Slay"),
+  "Gucci": generateBrandProducts("Gucci"),
+  "Versace": generateBrandProducts("Versace"),
 };
+
 export default function ParfumPage() {
-  const [activeBrand, setActiveBrand] = useState("迪奥");
+  const [activeScent, setActiveScent] = useState(scentList[0]);
   const [selectedItem, setSelectedItem] = useState(null);
   const pageScrollRef = useRef(0);
+
   const openDetail = (item) => {
     pageScrollRef.current = window.scrollY;
     setSelectedItem(item);
@@ -48,13 +66,14 @@ export default function ParfumPage() {
       window.scrollTo(0, pageScrollRef.current);
     },0);
   };
-  const currentProducts = productData[activeBrand];
-  // 获取当前选中品牌的logo
-  const currentBrandInfo = brandList.find(b => b.name === activeBrand);
+
+  // 全部商品合并，然后按选中香型筛选
+  const allProducts = Object.values(productData).flat();
+  const currentProducts = allProducts.filter(item => item.params.Scent === activeScent);
 
   return (
     <div style={{display:'flex', height:'100vh', overflow:'hidden'}}>
-      {/* 左侧品牌栏，固定不动，增加品牌图片+hover交互 */}
+      {/* 左侧改为香型栏，移除圆圈图片 */}
       <div style={{width:'200px',padding:'24px',borderRight:'1px solid #eee',flexShrink:0,overflowY:'auto'}}>
         {/* 返回分类页面按钮 */}
         <Link href="/categories" style={{
@@ -75,27 +94,24 @@ export default function ParfumPage() {
           e.target.style.backgroundColor="#f27c38";
         }}
         >
-          ← 返回商品分类
+          ← Back to Categories
         </Link>
-        <h3 style={{marginTop:0}}>品牌</h3>
-        {brandList.map(brand=>(
+        <h3 style={{marginTop:0}}>Scent Types</h3>
+        {scentList.map(scent=>(
           <div
-            key={brand.name}
-            onClick={()=>setActiveBrand(brand.name)}
+            key={scent}
+            onClick={()=>setActiveScent(scent)}
             style={{
-              display:"flex",
-              alignItems:"center",
-              gap:"10px",
               padding:'12px',
               margin:'8px 0',
               cursor:'pointer',
-              backgroundColor:activeBrand===brand.name ? '#0066ff':'#f3f4f6',
-              color:activeBrand===brand.name ? '#fff':'#222',
+              backgroundColor:activeScent===scent ? '#0066ff':'#f3f4f6',
+              color:activeScent===scent ? '#fff':'#222',
               borderRadius:'8px',
               transition:"all 0.25s ease"
             }}
             onMouseEnter={(e)=>{
-              if(activeBrand !== brand.name){
+              if(activeScent !== scent){
                 e.currentTarget.style.transform = "translateX(4px)";
                 e.currentTarget.style.boxShadow = "0 3px 8px rgba(0,0,0,0.1)";
               }
@@ -105,43 +121,13 @@ export default function ParfumPage() {
               e.currentTarget.style.boxShadow = "none";
             }}
           >
-            {/* 品牌Logo占位图，后续替换图片 */}
-            <div style={{
-              width:"32px",
-              height:"32px",
-              borderRadius:"50%",
-              overflow:"hidden",
-              backgroundColor:"#fff"
-            }}>
-              <img
-                src={brand.logo}
-                alt={brand.name}
-                style={{width:"100%",height:"100%",objectFit:"cover"}}
-                onError={(e)=>{
-                  e.currentTarget.style.display = "none";
-                }}
-              />
-            </div>
-            <span>{brand.name}</span>
+            {scent}
           </div>
         ))}
       </div>
       {/* 右侧区域：标题固定，商品列表独立滚动 */}
       <div style={{flex:1, padding:'24px', display:'flex', flexDirection:'column'}}>
-        <div style={{display:"flex",alignItems:"center",gap:"14px",margin:'0 0 20px 0'}}>
-          {/* 当前品牌大图标识 */}
-          {currentBrandInfo && (
-            <div style={{width:"48px",height:"48px",borderRadius:"50%",overflow:"hidden",background:"#eee"}}>
-              <img
-                src={currentBrandInfo.logo}
-                alt={activeBrand}
-                style={{width:"100%",height:"100%",objectFit:"cover"}}
-                onError={(e)=>e.currentTarget.style.display="none"}
-              />
-            </div>
-          )}
-          <h2 style={{margin:0}}>{activeBrand}香水（共{currentProducts.length}款）</h2>
-        </div>
+        <h2 style={{margin:0, marginBottom:"20px"}}>{activeScent} Perfume ({currentProducts.length} Items)</h2>
         <div style={{flex:1, overflowY:'auto'}}>
           <div style={{
             display:'grid',
@@ -177,7 +163,6 @@ export default function ParfumPage() {
                   alt={item.name}
                   style={{width:'100%',height:'230px',objectFit:'cover',display:'block'}}
                 />
-                <p style={{textAlign:'center',margin:'10px 0',fontSize:'14px',padding:'0 6px'}}>{item.name}</p >
               </div>
             ))}
           </div>
@@ -214,7 +199,7 @@ export default function ParfumPage() {
               style={{width:'100%',maxHeight:'400px',objectFit:'contain',borderRadius:"8px"}}
             />
             <div style={{marginTop:'24px'}}>
-              <h3 style={{margin:"0 0 12px 0"}}>产品参数</h3>
+              <h3 style={{margin:"0 0 12px 0"}}>Product Specs</h3>
               {Object.entries(selectedItem.params).map(([key,val])=>(
                 <div key={key} style={{display:'flex',padding:'8px 0',borderBottom:'1px solid #eee'}}>
                   <div style={{width:'120px',fontWeight:'bold'}}>{key}</div>
@@ -237,7 +222,7 @@ export default function ParfumPage() {
               onMouseEnter={(e)=>e.target.style.background="#0052d9"}
               onMouseLeave={(e)=>e.target.style.background="#0066ff"}
             >
-              返回产品列表
+              Back to List
             </button>
           </div>
         </div>

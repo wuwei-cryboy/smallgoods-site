@@ -2,40 +2,48 @@
 import { useState, useRef } from 'react';
 import Link from 'next/link';
 const brandList = [
-  { name: "绿联", logo: "/img/logo-lvlian.jpg" },
-  { name: "倍思", logo: "/img/logo-baseus.jpg" },
-  { name: "安克", logo: "/img/logo-anker.jpg" },
-  { name: "小米", logo: "/img/logo-xiaomi.jpg" },
-  { name: "华为", logo: "/img/logo-huawei.jpg" }
+  { name: "Ugreen", logo: "/img/logo-lvlian.jpg" },
+  { name: "Baseus", logo: "/img/logo-baseus.jpg" },
+  { name: "Anker", logo: "/img/logo-anker.jpg" },
+  { name: "Xiaomi", logo: "/img/logo-xiaomi.jpg" },
+  { name: "Huawei", logo: "/img/logo-huawei.jpg" }
 ];
-// 生成每个品牌50条充电设备商品数据
+
+// 配件分类列表
+const categoryList = [
+  "Generic Smartphone Accessory Gift Set"
+];
+
+// 生成每个品牌50条充电设备商品数据，分配分类
 const generateBrandProducts = (brandName) => {
   const list = [];
   for(let i=1;i<=50;i++){
+    const catIndex = (i-1) % categoryList.length;
     list.push({
       id: `${brandName}-${i}`,
-      name: `${brandName}充电器${i}`,
+      name: `${brandName} Charger ${i}`,
+      category: categoryList[catIndex],
       img: `/img/${brandName}${i}.jpg`,
       params:{
-        "功率":"65W",
-        "接口":"Type-C+USB-A",
-        "材质":"PC阻燃外壳",
-        "特性":"氮化镓快充",
-        "产地":"China"
+        "Power":"65W",
+        "Ports":"Type-C+USB-A",
+        "Material":"PC Flame-retardant Shell",
+        "Feature":"GaN Fast Charging",
+        "Origin":"China"
       }
     })
   }
   return list;
 }
 const productData = {
-  "绿联": generateBrandProducts("绿联"),
-  "倍思": generateBrandProducts("倍思"),
-  "安克": generateBrandProducts("安克"),
-  "小米": generateBrandProducts("小米"),
-  "华为": generateBrandProducts("华为"),
+  "Ugreen": generateBrandProducts("Ugreen"),
+  "Baseus": generateBrandProducts("Baseus"),
+  "Anker": generateBrandProducts("Anker"),
+  "Xiaomi": generateBrandProducts("Xiaomi"),
+  "Huawei": generateBrandProducts("Huawei"),
 };
 export default function ChargerPage() {
-  const [activeBrand, setActiveBrand] = useState("绿联");
+  const [activeCategory, setActiveCategory] = useState(categoryList[0]);
   const [selectedItem, setSelectedItem] = useState(null);
   const pageScrollRef = useRef(0);
   const openDetail = (item) => {
@@ -44,17 +52,15 @@ export default function ChargerPage() {
   };
   const closeDetail = () => {
     setSelectedItem(null);
-    setTimeout(()=>{
-      window.scrollTo(0, pageScrollRef.current);
-    },0);
   };
-  const currentProducts = productData[activeBrand];
-  // 获取当前选中品牌的logo
-  const currentBrandInfo = brandList.find(b => b.name === activeBrand);
+
+  // 合并全部商品，按选中分类筛选，只取前10件
+  const allProducts = Object.values(productData).flat();
+  const currentProducts = allProducts.filter(item => item.category === activeCategory).slice(0,10);
 
   return (
     <div style={{display:'flex', height:'100vh', overflow:'hidden'}}>
-      {/* 左侧品牌栏 */}
+      {/* 左侧分类栏，移除圆圈图片 */}
       <div style={{width:'200px',padding:'24px',borderRight:'1px solid #eee',flexShrink:0,overflowY:'auto'}}>
         {/* 返回分类页面按钮 */}
         <Link href="/categories" style={{
@@ -75,27 +81,24 @@ export default function ChargerPage() {
           e.target.style.backgroundColor="#f27c38";
         }}
         >
-          ← 返回商品分类
+          ← Back to Categories
         </Link>
-        <h3 style={{marginTop:0}}>品牌</h3>
-        {brandList.map(brand=>(
+        <h3 style={{marginTop:0}}>Category</h3>
+        {categoryList.map(category=>(
           <div
-            key={brand.name}
-            onClick={()=>setActiveBrand(brand.name)}
+            key={category}
+            onClick={()=>setActiveCategory(category)}
             style={{
-              display:"flex",
-              alignItems:"center",
-              gap:"10px",
               padding:'12px',
               margin:'8px 0',
               cursor:'pointer',
-              backgroundColor:activeBrand===brand.name ? '#0066ff':'#f3f4f6',
-              color:activeBrand===brand.name ? '#fff':'#222',
+              backgroundColor:activeCategory===category ? '#0066ff':'#f3f4f6',
+              color:activeCategory===category ? '#fff':'#222',
               borderRadius:'8px',
               transition:"all 0.25s ease"
             }}
             onMouseEnter={(e)=>{
-              if(activeBrand !== brand.name){
+              if(activeCategory !== category){
                 e.currentTarget.style.transform = "translateX(4px)";
                 e.currentTarget.style.boxShadow = "0 3px 8px rgba(0,0,0,0.1)";
               }
@@ -105,42 +108,14 @@ export default function ChargerPage() {
               e.currentTarget.style.boxShadow = "none";
             }}
           >
-            {/* 品牌Logo占位图 */}
-            <div style={{
-              width:"32px",
-              height:"32px",
-              borderRadius:"50%",
-              overflow:"hidden",
-              backgroundColor:"#fff"
-            }}>
-              <img
-                src={brand.logo}
-                alt={brand.name}
-                style={{width:"100%",height:"100%",objectFit:"cover"}}
-                onError={(e)=>{
-                  e.currentTarget.style.display = "none";
-                }}
-              />
-            </div>
-            <span>{brand.name}</span>
+            {category}
           </div>
         ))}
       </div>
       {/* 右侧商品区域 */}
       <div style={{flex:1, padding:'24px', display:'flex', flexDirection:'column'}}>
-        <div style={{display:"flex",alignItems:"center",gap:"14px",margin:'0 0 20px 0'}}>
-          {currentBrandInfo && (
-            <div style={{width:"48px",height:"48px",borderRadius:"50%",overflow:"hidden",background:"#eee"}}>
-              <img
-                src={currentBrandInfo.logo}
-                alt={activeBrand}
-                style={{width:"100%",height:"100%",objectFit:"cover"}}
-                onError={(e)=>e.currentTarget.style.display="none"}
-              />
-            </div>
-          )}
-          <h2 style={{margin:0}}>{activeBrand}充电器（共{currentProducts.length}款）</h2>
-        </div>
+        {/* 标题去掉数量括号 */}
+        <h2 style={{margin:'0 0 20px 0'}}>{activeCategory}</h2>
         <div style={{flex:1, overflowY:'auto'}}>
           <div style={{
             display:'grid',
@@ -176,13 +151,13 @@ export default function ChargerPage() {
                   alt={item.name}
                   style={{width:'100%',height:'230px',objectFit:'cover',display:'block'}}
                 />
-                <p style={{textAlign:'center',margin:'10px 0',fontSize:'14px',padding:'0 6px'}}>{item.name}</p >
+                {/* 卡片底部商品名称p标签已删除 */}
               </div>
             ))}
           </div>
         </div>
       </div>
-      {/* 弹窗详情 */}
+      {/* 弹窗详情 修复冒泡BUG */}
       {selectedItem && (
         <div
           onClick={closeDetail}
@@ -213,7 +188,7 @@ export default function ChargerPage() {
               style={{width:'100%',maxHeight:'400px',objectFit:'contain',borderRadius:"8px"}}
             />
             <div style={{marginTop:'24px'}}>
-              <h3 style={{margin:"0 0 12px 0"}}>产品参数</h3>
+              <h3 style={{margin:"0 0 12px 0"}}>Specifications</h3>
               {Object.entries(selectedItem.params).map(([key,val])=>(
                 <div key={key} style={{display:'flex',padding:'8px 0',borderBottom:'1px solid #eee'}}>
                   <div style={{width:'120px',fontWeight:'bold'}}>{key}</div>
@@ -236,7 +211,7 @@ export default function ChargerPage() {
               onMouseEnter={(e)=>e.target.style.background="#0052d9"}
               onMouseLeave={(e)=>e.target.style.background="#0066ff"}
             >
-              返回产品列表
+              Back to List
             </button>
           </div>
         </div>
